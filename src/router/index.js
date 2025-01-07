@@ -9,7 +9,7 @@ export const router = createRouter({
   scrollBehavior: () => ({ left: 0, top: 0 })
 })
 
-export async function setupRouter(app) {
+export function setupRouter(app) {
   setupRouterGuard(router)
   app.use(router)
 }

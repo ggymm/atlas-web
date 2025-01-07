@@ -1,11 +1,11 @@
 <template>
-  <AppProvider>
+  <provider>
     <router-view v-slot="{ Component }">
       <component :is="Component" />
     </router-view>
-  </AppProvider>
+  </provider>
 </template>
 
 <script setup>
-import AppProvider from '@/components/app/AppProvider.vue'
+import Provider from '@/components/app/Provider.vue'
 </script>

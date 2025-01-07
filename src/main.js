@@ -1,5 +1,5 @@
 import 'uno.css'
-import '@/styles/reset.css'
+import '@/styles/reset.scss'
 import '@/styles/global.scss'
 import 'virtual:svg-icons-register'
 
@@ -11,15 +11,13 @@ import { setupNaiveDiscreteApi } from '@/setup'
 
 import App from './app.vue'
 
-async function setupApp() {
+function setupApp() {
   const app = createApp(App)
 
-  await setupRouter(app)
+  setupRouter(app)
   setupNaiveDiscreteApi()
 
   app.mount('#app')
 }
 
-setupApp().then(() => {
-  console.log('App setup done!')
-})
+setupApp()
