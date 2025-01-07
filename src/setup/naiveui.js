@@ -1,6 +1,5 @@
 import * as NaiveUI from 'naive-ui'
-
-import setting from '@/setting'
+import { darkTheme } from 'naive-ui'
 
 import { isNullOrUndef } from '@/utils'
 
@@ -84,13 +83,11 @@ export function setupDialog(NDialog) {
 
 export function setupNaiveDiscreteApi() {
   const configProviderProps = computed(() => ({
-    theme: undefined,
-    themeOverrides: setting.naiveThemeOverrides
+    theme: darkTheme
   }))
-  const { dialog, message, notification, loadingBar } = NaiveUI.createDiscreteApi(
-    ['message', 'dialog', 'notification', 'loadingBar'],
-    { configProviderProps }
-  )
+  const { dialog, message, notification, loadingBar } = NaiveUI.createDiscreteApi(['message', 'dialog', 'notification', 'loadingBar'], {
+    configProviderProps
+  })
 
   window.$loadingBar = loadingBar
   window.$notification = notification
