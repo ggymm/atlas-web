@@ -10,28 +10,6 @@ const service = axios.create({
   timeout: 300000
 })
 
-let dialog = false
-const options = {
-  closable: false,
-  closeOnEsc: false,
-  maskClosable: false
-}
-const showUnauthorized = () => {
-  if (!dialog) {
-    dialog = true
-    window['$dialog'].warning({
-      ...options,
-      title: '警告',
-      content: '用户身份验证失败，请重新登录',
-      positiveText: '确定',
-      onPositiveClick: () => {
-        dialog = false
-        window.location.href = '#/login'
-      }
-    })
-  }
-}
-
 service.interceptors.request.use(
   (config) => {
     return config
@@ -46,7 +24,6 @@ service.interceptors.response.use(
   (response) => {
     const { status } = response
     if (status === 401) {
-      showUnauthorized()
       return Promise.reject('Unauthorized')
     }
     return response.data
@@ -57,7 +34,6 @@ service.interceptors.response.use(
     if (response) {
       const { status } = response
       if (status === 401) {
-        showUnauthorized()
         return Promise.reject('Unauthorized')
       }
     }
