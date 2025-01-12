@@ -1,7 +1,3 @@
-html {
-  box-sizing: border-box;
-}
-
 *,
 ::before,
 ::after {
@@ -10,75 +6,32 @@ html {
   box-sizing: inherit;
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-a:hover,
-a:link,
-a:visited,
-a:active {
-  text-decoration: none;
-}
-
-ol,
-ul {
-  list-style: none;
-}
-
-input,
-textarea {
-  outline: none;
-  border: none;
-  resize: none;
-}
-
 html,
 body {
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 #app {
   width: 100%;
   height: 100%;
-}
+  background: #23292e;
 
-.cus-scroll {
-  overflow: auto;
-  max-height: 100%;
+  .n-input {
+    --n-padding-left: 20px;
+    --n-padding-right: 20px;
 
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-}
+    --n-border: none;
+    --n-border-disabled: none;
+    --n-border-hover: none;
+    --n-border-focus: none;
 
-.cus-scroll-x {
-  overflow-x: auto;
-
-  &::-webkit-scrollbar {
-    width: 0;
-    height: 8px;
-  }
-}
-
-.cus-scroll-y {
-  overflow-y: auto;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-    height: 0;
-  }
-}
-
-.cus-scroll,
-.cus-scroll-x,
-.cus-scroll-y {
-  &::-webkit-scrollbar-thumb {
-    border-radius: 4px;
-    background-color: #bfbfbf;
+    .n-input__state-border {
+      box-shadow: none;
+    }
   }
 }

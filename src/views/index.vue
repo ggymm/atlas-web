@@ -11,7 +11,7 @@ const search = ref()
 const total = ref()
 const videos = ref()
 
-const loading = ref(true)
+const loading = ref(false)
 const fetchData = async () => {
   loading.value = true
   const { msg, data, success } = await getPage({
@@ -35,6 +35,18 @@ const handleUpdatePageSize = () => {
   fetchData()
 }
 
+const handleVideoPlay = (v) => {
+  const base = 'C:/Users/19679/Videos/TG/'
+  const path = `vlc://${base}${v['path']}`
+
+  const body = document.querySelector('body')
+  const click = document.createElement('a')
+  click.href = path
+  body.appendChild(click)
+  click.click()
+  body.removeChild(click)
+}
+
 onMounted(() => {
   page.value = 1
   size.value = 20
@@ -43,41 +55,36 @@ onMounted(() => {
 </script>
 
 <template>
-  <div wh-full px-20 flex-col class="app">
-    <div flex items-center h-80 min-h-80 max-h-80>
-      <n-input v-model:value="search" type="text" />
-      <n-button>搜索</n-button>
+  <div wh-full flex-col>
+    <div flex flex-center gap-20 h-80 min-h-80 max-h-80>
+      <div w-200></div>
+      <div flex gap-20 flex-1>
+        <n-input v-model:value="search" type="text" round />
+        <n-button type="primary" round>
+          <span>搜索影片</span>
+        </n-button>
+      </div>
+      <div w-200></div>
     </div>
-    <n-scrollbar flex-1>
-      <n-spin :show="loading">
+    <n-scrollbar flex-1 px-20>
+      <n-spin :show="loading" min-h-200>
         <div grid gap-20 style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))">
-          <div flex-col flex-center v-for="v in videos">
+          <div flex-col flex-center v-for="v in videos" :key="v['id']">
             <div relative w-320 h-180 class="cover">
               <div class="mask">
                 <div class="mask-bg"></div>
-                <div class="mask-play">
-                  <svg-icon icon="image-play" w-48 h-48 />
-                </div>
-                <div class="mask-handle">
-                  <n-button text circle>
-                    <svg-icon icon="icon-check" w-24 h-24 />
-                  </n-button>
-                  <n-button text circle>
-                    <svg-icon icon="icon-love" w-24 h-24 />
-                  </n-button>
-                  <n-button text circle>
-                    <svg-icon icon="icon-dots" w-24 h-24 />
-                  </n-button>
+                <div class="mask-play" @click="handleVideoPlay(v)">
+                  <svg-icon icon="play" w-48 h-48 />
                 </div>
               </div>
-              <img wh-full :src="getCover(v['id'])" :alt="v['id']" />
+              <img wh-full :src="getCover(v['id'])" :alt="v['id']" loading="lazy" />
             </div>
             <div flex-center w-320 h-60 class="title">
               <n-ellipsis>
-                {{ v['name'] }}
+                {{ v['title'] }}
                 <template #tooltip>
                   <div max-w-320>
-                    {{ v['name'] }}
+                    {{ v['title'] }}
                   </div>
                 </template>
               </n-ellipsis>
@@ -104,11 +111,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style lang="scss" scoped>
-.app {
-  background: #101014;
-}
-
+<style lang="scss">
 .cover {
   &:hover {
     .mask {
@@ -129,7 +132,7 @@ onMounted(() => {
       display: flex;
       width: 320px;
       height: 180px;
-      background-color: rgba(0, 0, 0, 0.2);
+      background-color: rgba(0, 0, 0, 0.5);
     }
 
     .mask-play {
