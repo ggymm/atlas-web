@@ -1,5 +1,4 @@
 import 'uno.css'
-import '@/styles/reset.scss'
 import 'virtual:svg-icons-register'
 
 import { createApp } from 'vue'
