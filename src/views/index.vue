@@ -1,6 +1,9 @@
 <script setup>
-import { taskExec, taskClean } from '@/api/task.js'
+import { taskExec, taskClean, taskEvents } from '@/api/task.js'
 import { videoCover, videoInfo, videoPage } from '@/api/video.js'
+
+import { useWindowResize } from '@/hooks/index.js'
+import { $ } from '@/utils/index.js'
 
 import SvgIcon from '@/components/icon/SvgIcon.vue'
 
@@ -33,6 +36,17 @@ const handleSearch = () => {
   fetchPage()
 }
 
+const handleConfig = () => {
+  fetchInfo()
+  fetchEvents()
+  drawer.value = true
+
+  // 重置表格高度
+  nextTick(() => {
+    resetTableHeight()
+  })
+}
+
 const handleUpdatePage = () => {
   fetchPage()
 }
@@ -43,7 +57,7 @@ const handleUpdatePageSize = () => {
 
 // ==================== 设置组件 ====================
 const drawer = ref(false)
-const active = ref('统计信息')
+const active = ref('计划任务')
 
 const infoData = ref()
 const infoLabel = ref([
@@ -65,8 +79,18 @@ const infoLabel = ref([
   }
 ])
 
-const execLoading = ref(false)
-const cleanLoading = ref(false)
+const eventData = ref()
+const eventColumns = ref([
+  {
+    title: '事件',
+    key: 'content'
+  },
+  {
+    title: '时间',
+    key: 'createAt'
+  }
+])
+const eventLoading = ref(false)
 
 const fetchInfo = async () => {
   const { msg, data, success } = await videoInfo()
@@ -77,27 +101,29 @@ const fetchInfo = async () => {
   infoData.value = data
 }
 
+const fetchEvents = async () => {
+  eventLoading.value = true
+  const { msg, data, success } = await taskEvents()
+  eventLoading.value = false
+  if (!success) {
+    console.error(msg)
+    return
+  }
+  eventData.value = data
+}
+
 const handleTaskExec = async () => {
-  execLoading.value = true
   const { msg, success } = await taskExec()
-  execLoading.value = false
   if (!success) {
     console.error(msg)
   }
 }
 
 const handleTaskClean = async () => {
-  cleanLoading.value = true
   const { msg, success } = await taskClean()
-  cleanLoading.value = false
   if (!success) {
     console.error(msg)
   }
-}
-
-const handleConfig = () => {
-  fetchInfo()
-  drawer.value = true
 }
 
 const handleTabChange = (tab) => {
@@ -111,9 +137,22 @@ const handlePlayVideo = (path) => {
   }
 }
 
+const height = ref(200)
+const resetTableHeight = () => {
+  const container = $('.n-drawer .n-scrollbar')
+  const tableContainer = $('.n-drawer .table-container')
+  if (!container || !tableContainer) {
+    return
+  }
+  // 100 = 20 + 20 + 40 + 20
+  height.value = container.clientHeight - 100
+}
+useWindowResize(resetTableHeight, 0)
+
 onMounted(() => {
   fetchPage()
   fetchInfo()
+  fetchEvents()
 })
 </script>
 
@@ -174,7 +213,7 @@ onMounted(() => {
         <template #next>下一页</template>
       </n-pagination>
     </div>
-    <n-drawer v-model:show="drawer" width="60%">
+    <n-drawer v-model:show="drawer" width="80%">
       <n-drawer-content>
         <template #header>应用设置</template>
         <template #footer>
@@ -183,11 +222,33 @@ onMounted(() => {
         <div flex-col wh-full>
           <div>
             <n-tabs type="bar" :default-value="active" @update-value="handleTabChange">
-              <n-tab name="统计信息">统计信息</n-tab>
               <n-tab name="计划任务">计划任务</n-tab>
+              <n-tab name="统计信息">统计信息</n-tab>
             </n-tabs>
           </div>
-          <n-scrollbar flex-1>
+          <n-scrollbar flex-1 ref="container">
+            <div v-show="active === '计划任务'">
+              <div flex-col gap-20 py-20>
+                <div flex-row items-center justify-between h-40>
+                  <div>
+                    <n-button type="success" @click="fetchEvents()">刷新数据</n-button>
+                  </div>
+                  <div flex-row gap-20>
+                    <n-button type="primary" @click="handleTaskExec()">扫描文件夹</n-button>
+                    <n-button type="success" @click="handleTaskClean()">清空数据库</n-button>
+                  </div>
+                </div>
+                <div flex-1 class="table-container">
+                  <n-data-table
+                    flex-height
+                    :data="eventData"
+                    :style="{ width: '100%', height: `${height}px` }"
+                    :loading="eventLoading"
+                    :columns="eventColumns"
+                  />
+                </div>
+              </div>
+            </div>
             <div v-show="active === '统计信息'">
               <div flex-col py-20>
                 <div flex-row items-center justify-items-center h-40 v-for="item in infoLabel">
@@ -196,12 +257,6 @@ onMounted(() => {
                   </div>
                   <div>{{ infoData[item['key']] }}</div>
                 </div>
-              </div>
-            </div>
-            <div v-show="active === '计划任务'">
-              <div flex-row gap-20 py-20>
-                <n-button type="primary" :loading="execLoading" @click="handleTaskExec()">扫描文件夹</n-button>
-                <n-button type="success" :loading="cleanLoading" @click="handleTaskClean()">清空数据库</n-button>
               </div>
             </div>
           </n-scrollbar>

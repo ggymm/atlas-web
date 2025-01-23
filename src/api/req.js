@@ -7,7 +7,7 @@ const { VITE_API_BASE_URL } = getEnv()
 const service = axios.create({
   headers: { 'Content-Type': 'application/json' },
   baseURL: VITE_API_BASE_URL,
-  timeout: 300000
+  timeout: 30 * 60 * 1000 // 30 分钟
 })
 
 service.interceptors.request.use(

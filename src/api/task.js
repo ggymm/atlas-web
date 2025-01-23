@@ -9,3 +9,7 @@ export function taskExec(data) {
 export function taskClean(data) {
   return req.post(baseApiUrl + 'clean', data)
 }
+
+export function taskEvents(data) {
+  return req.post(baseApiUrl + 'events', data)
+}
