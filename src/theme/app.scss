@@ -1,0 +1,38 @@
+*,
+::before,
+::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  line-height: 1;
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  background: #23292e;
+
+  .n-input {
+    --n-padding-left: 20px;
+    --n-padding-right: 20px;
+
+    --n-border: none;
+    --n-border-disabled: none;
+    --n-border-hover: none;
+    --n-border-focus: none;
+
+    .n-input__state-border {
+      box-shadow: none;
+    }
+  }
+}

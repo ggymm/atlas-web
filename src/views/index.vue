@@ -1,12 +1,13 @@
 <script setup>
-import { cover, queryPage, queryStats } from '@/api/video.js'
+import { taskExec, taskClean } from '@/api/task.js'
+import { videoCover, videoInfo, videoPage } from '@/api/video.js'
 
 import SvgIcon from '@/components/icon/SvgIcon.vue'
 
 // ==================== 列表组件 ====================
-const model = ref({
+const query = ref({
   page: 1,
-  size: 20,
+  size: 60,
   search: null
 })
 
@@ -14,10 +15,10 @@ const total = ref()
 const videos = ref()
 
 const loading = ref(false)
-const fetchData = async () => {
+const fetchPage = async () => {
   loading.value = true
-  const { msg, data, success } = await queryPage({
-    ...model.value
+  const { msg, data, success } = await videoPage({
+    ...query.value
   })
   loading.value = false
   if (!success) {
@@ -29,50 +30,90 @@ const fetchData = async () => {
 }
 
 const handleSearch = () => {
-  fetchData()
+  fetchPage()
 }
 
 const handleUpdatePage = () => {
-  fetchData()
+  fetchPage()
 }
 
 const handleUpdatePageSize = () => {
-  fetchData()
-}
-
-const handleVideoPlay = (v) => {
-  console.log(v)
+  fetchPage()
 }
 
 // ==================== 设置组件 ====================
 const drawer = ref(false)
-const activeTab = ref('幸福')
+const active = ref('统计信息')
 
-const fetchStats = async () => {
-  const { msg, data, success } = await queryStats()
+const infoData = ref()
+const infoLabel = ref([
+  {
+    key: 'root',
+    label: '根目录'
+  },
+  {
+    key: 'total',
+    label: '总数'
+  },
+  {
+    key: 'totalSize',
+    label: '总大小'
+  },
+  {
+    key: 'totalDuration',
+    label: '总时长'
+  }
+])
+
+const execLoading = ref(false)
+const cleanLoading = ref(false)
+
+const fetchInfo = async () => {
+  const { msg, data, success } = await videoInfo()
   if (!success) {
     console.error(msg)
     return
   }
-  console.log(data)
+  infoData.value = data
+}
+
+const handleTaskExec = async () => {
+  execLoading.value = true
+  const { msg, success } = await taskExec()
+  execLoading.value = false
+  if (!success) {
+    console.error(msg)
+  }
+}
+
+const handleTaskClean = async () => {
+  cleanLoading.value = true
+  const { msg, success } = await taskClean()
+  cleanLoading.value = false
+  if (!success) {
+    console.error(msg)
+  }
 }
 
 const handleConfig = () => {
+  fetchInfo()
   drawer.value = true
 }
 
 const handleTabChange = (tab) => {
-  console.log(tab)
-  activeTab.value = tab
+  active.value = tab
+}
+
+// ==================== 系统函数 ====================
+const handlePlayVideo = (path) => {
+  if (window['playVideo']) {
+    window['playVideo'](path)
+  }
 }
 
 onMounted(() => {
-  model.value = {
-    page: 1,
-    size: 60
-  }
-  fetchData()
-  fetchStats()
+  fetchPage()
+  fetchInfo()
 })
 </script>
 
@@ -81,7 +122,7 @@ onMounted(() => {
     <div flex flex-center gap-20 h-80 min-h-80 max-h-80>
       <div w-200></div>
       <div flex gap-20 flex-1>
-        <n-input v-model:value="model.search" type="text" round />
+        <n-input v-model:value="query.search" type="text" round />
         <n-button type="primary" round @click="handleSearch">
           <span>搜索影片</span>
         </n-button>
@@ -98,11 +139,11 @@ onMounted(() => {
             <div relative w-320 h-180 class="cover">
               <div class="mask">
                 <div class="mask-bg"></div>
-                <div class="mask-play" @click="handleVideoPlay(v)">
+                <div class="mask-play" @click="handlePlayVideo(v['path'])">
                   <svg-icon icon="play" w-48 h-48 />
                 </div>
               </div>
-              <img wh-full :src="cover(v['id'])" :alt="v['id']" loading="lazy" />
+              <img wh-full :src="videoCover(v['id'])" :alt="v['id']" loading="lazy" />
             </div>
             <div flex-center w-320 h-60 class="title">
               <n-ellipsis>
@@ -124,8 +165,8 @@ onMounted(() => {
         show-quick-jumper
         :item-count="total"
         :page-sizes="[20, 40, 60, 80, 100]"
-        v-model:page="model.page"
-        v-model:page-size="model.size"
+        v-model:page="query.page"
+        v-model:page-size="query.size"
         @update-page="handleUpdatePage"
         @update-page-size="handleUpdatePageSize"
       >
@@ -141,16 +182,28 @@ onMounted(() => {
         </template>
         <div flex-col wh-full>
           <div>
-            <n-tabs type="bar" @update-value="handleTabChange">
-              <n-tab name="标签数据">标签数据</n-tab>
-              <n-tab name="统计数据">统计数据</n-tab>
-              <n-tab name="后台任务">计划任务</n-tab>
+            <n-tabs type="bar" :default-value="active" @update-value="handleTabChange">
+              <n-tab name="统计信息">统计信息</n-tab>
+              <n-tab name="计划任务">计划任务</n-tab>
             </n-tabs>
           </div>
           <n-scrollbar flex-1>
-            <div v-show="activeTab === '标签数据'"></div>
-            <div v-show="activeTab === '统计数据'"></div>
-            <div v-show="activeTab === '后台任务'"></div>
+            <div v-show="active === '统计信息'">
+              <div flex-col py-20>
+                <div flex-row items-center justify-items-center h-40 v-for="item in infoLabel">
+                  <div w-120>
+                    {{ item['label'] }}
+                  </div>
+                  <div>{{ infoData[item['key']] }}</div>
+                </div>
+              </div>
+            </div>
+            <div v-show="active === '计划任务'">
+              <div flex-row gap-20 py-20>
+                <n-button type="primary" :loading="execLoading" @click="handleTaskExec()">扫描文件夹</n-button>
+                <n-button type="success" :loading="cleanLoading" @click="handleTaskClean()">清空数据库</n-button>
+              </div>
+            </div>
           </n-scrollbar>
         </div>
       </n-drawer-content>
