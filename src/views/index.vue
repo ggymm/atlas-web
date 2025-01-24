@@ -7,6 +7,16 @@ import { $ } from '@/utils/index.js'
 
 import SvgIcon from '@/components/icon/SvgIcon.vue'
 
+const syntaxes = [
+  'A OR B',
+  'A AND B',
+  'A AND (B OR C)',
+  'A AND (B OR C) AND D',
+  'A AND (B OR C) AND (D OR E)',
+  'A AND ((B AND C) OR (D AND E))',
+  'A AND (B OR C) AND (D OR E) AND F'
+]
+
 // ==================== 列表组件 ====================
 const query = ref({
   page: 1,
@@ -40,6 +50,7 @@ const handleConfig = () => {
   fetchInfo()
   fetchEvents()
   drawer.value = true
+  active.value = '计划任务'
 
   // 重置表格高度
   nextTick(() => {
@@ -59,7 +70,12 @@ const handleUpdatePageSize = () => {
 const drawer = ref(false)
 const active = ref('计划任务')
 
-const infoData = ref()
+const infoData = ref({
+  root: 0,
+  total: 0,
+  totalSize: 0,
+  totalDuration: 0
+})
 const infoLabel = ref([
   {
     key: 'root',
@@ -79,8 +95,8 @@ const infoLabel = ref([
   }
 ])
 
-const eventData = ref()
-const eventColumns = ref([
+const eventsData = ref()
+const eventsColumns = ref([
   {
     title: '事件',
     key: 'content'
@@ -90,7 +106,7 @@ const eventColumns = ref([
     key: 'createAt'
   }
 ])
-const eventLoading = ref(false)
+const eventsLoading = ref(false)
 
 const fetchInfo = async () => {
   const { msg, data, success } = await videoInfo()
@@ -102,14 +118,14 @@ const fetchInfo = async () => {
 }
 
 const fetchEvents = async () => {
-  eventLoading.value = true
+  eventsLoading.value = true
   const { msg, data, success } = await taskEvents()
-  eventLoading.value = false
+  eventsLoading.value = false
   if (!success) {
     console.error(msg)
     return
   }
-  eventData.value = data
+  eventsData.value = data
 }
 
 const handleTaskExec = async () => {
@@ -117,6 +133,8 @@ const handleTaskExec = async () => {
   if (!success) {
     console.error(msg)
   }
+  await fetchEvents()
+  window['$message'].success('开始扫描文件夹')
 }
 
 const handleTaskClean = async () => {
@@ -124,6 +142,8 @@ const handleTaskClean = async () => {
   if (!success) {
     console.error(msg)
   }
+  await fetchEvents()
+  window['$message'].success('开始清空数据库')
 }
 
 const handleTabChange = (tab) => {
@@ -161,7 +181,20 @@ onMounted(() => {
     <div flex flex-center gap-20 h-80 min-h-80 max-h-80>
       <div w-200></div>
       <div flex gap-20 flex-1>
-        <n-input v-model:value="query.search" type="text" round />
+        <n-input v-model:value="query.search" type="text" round>
+          <template #suffix>
+            <n-popover trigger="hover">
+              <template #trigger>
+                <svg-icon icon="info" w-20 h-20 cursor-pointer />
+              </template>
+              <div flex-col class="syntax-help">
+                <div v-for="(item, index) in syntaxes" :key="index" class="syntax-item">
+                  {{ item }}
+                </div>
+              </div>
+            </n-popover>
+          </template>
+        </n-input>
         <n-button type="primary" round @click="handleSearch">
           <span>搜索影片</span>
         </n-button>
@@ -241,10 +274,10 @@ onMounted(() => {
                 <div flex-1 class="table-container">
                   <n-data-table
                     flex-height
-                    :data="eventData"
+                    :data="eventsData"
                     :style="{ width: '100%', height: `${height}px` }"
-                    :loading="eventLoading"
-                    :columns="eventColumns"
+                    :loading="eventsLoading"
+                    :columns="eventsColumns"
                   />
                 </div>
               </div>
@@ -263,10 +296,27 @@ onMounted(() => {
         </div>
       </n-drawer-content>
     </n-drawer>
+    <n-back-top :right="100" />
   </div>
 </template>
 
 <style lang="scss">
+.syntax-help {
+  min-width: 360px;
+  font-size: 13px;
+
+  .syntax-item {
+    color: #16b777;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 8px;
+
+    &:hover {
+      background: #59595e;
+    }
+  }
+}
+
 .cover {
   &:hover {
     .mask {

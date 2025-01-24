@@ -1,11 +1,11 @@
 import { darken, lighten } from '@/utils/index.js'
 
 const theme = {
-  primary: '#16BAAA',
-  info: '#1E9FFF',
-  success: '#16B777',
-  warning: '#FFB800',
-  error: '#FF5722'
+  primary: '#16baaa',
+  info: '#1e9fff',
+  success: '#16b777',
+  warning: '#ffb800',
+  error: '#ff5722'
 }
 const commonColor = {}
 Object.keys(theme).forEach((item) => {
