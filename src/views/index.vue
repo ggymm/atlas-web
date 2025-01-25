@@ -31,10 +31,7 @@ const update = ref({
   stars: 0
 })
 
-// 列表数据
 const paths = ref()
-
-// 分页数据
 const total = ref()
 const videos = ref()
 
@@ -125,9 +122,10 @@ const handleLikeVideo = (v) => {
       updateVideoStars({
         id: v['id'],
         stars: update.value['stars']
-      }).then((res) => {
-        if (!res['success']) {
-          window['$message'].error(`更新评分失败: ${res['msg']}`)
+      }).then((resp) => {
+        const { msg, success } = resp
+        if (!success) {
+          window['$message'].error(`更新评分失败: ${msg}`)
         }
       })
     }
