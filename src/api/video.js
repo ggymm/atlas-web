@@ -3,16 +3,20 @@ import { getEnv } from '@/utils/index.js'
 
 const baseApiUrl = '/video/'
 
-export function videoInfo(data) {
+export function queryVideoInfo(data) {
   return req.post(baseApiUrl + 'query/info', data)
 }
 
-export function videoPage(data) {
+export function queryVideoPage(data) {
   return req.post(baseApiUrl + 'query/page', data)
 }
 
-export function videoPaths(data) {
+export function queryVideoPaths(data) {
   return req.post(baseApiUrl + 'query/paths', data)
+}
+
+export function updateVideoStars(data) {
+  return req.post(baseApiUrl + 'update/stars', data)
 }
 
 const { VITE_API_BASE_URL } = getEnv()

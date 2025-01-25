@@ -1,12 +1,15 @@
 <script setup>
-import { taskExec, taskClean, taskEvents } from '@/api/task.js'
-import { videoCover, videoInfo, videoPage, videoPaths } from '@/api/video.js'
+import { NRate, useModal } from 'naive-ui'
+
+import { postTaskExec, postTaskClean, queryTaskEvents } from '@/api/task.js'
+import { videoCover, queryVideoInfo, queryVideoPage, queryVideoPaths, updateVideoStars } from '@/api/video.js'
 
 import { useWindowResize } from '@/hooks/index.js'
 import { $ } from '@/utils/index.js'
 
 import SvgIcon from '@/components/icon/SvgIcon.vue'
 
+const modal = useModal()
 const syntaxes = [
   'A OR B',
   'A AND B',
@@ -24,15 +27,21 @@ const query = ref({
   path: null,
   search: null
 })
+const update = ref({
+  stars: 0
+})
 
-const total = ref()
+// 列表数据
 const paths = ref()
+
+// 分页数据
+const total = ref()
 const videos = ref()
 
 const loading = ref(false)
 const fetchPage = async () => {
   loading.value = true
-  const { msg, data, success } = await videoPage({
+  const { msg, data, success } = await queryVideoPage({
     ...query.value
   })
   loading.value = false
@@ -45,7 +54,7 @@ const fetchPage = async () => {
 }
 
 const fetchPaths = async () => {
-  const { msg, data, success } = await videoPaths()
+  const { msg, data, success } = await queryVideoPaths()
   if (!success) {
     console.error(msg)
     return
@@ -84,6 +93,45 @@ const handlePlayVideo = (v) => {
 
 const handleLikeVideo = (v) => {
   console.log(v)
+  modal.create({
+    title: '评分',
+    preset: 'dialog',
+    autoFocus: false,
+    negativeText: '取消',
+    positiveText: '确认',
+    content: () => {
+      return h(
+        'div',
+        {
+          style: {
+            padding: '20px'
+          }
+        },
+        [
+          h(NRate, {
+            modelValue: v['stars'],
+            onUpdateValue: (val) => {
+              update.value['stars'] = val
+            }
+          })
+        ]
+      )
+    },
+    onPositiveClick: () => {
+      // 修改对象
+      v['stars'] = update.value['stars']
+
+      // 更新数据库
+      updateVideoStars({
+        id: v['id'],
+        stars: update.value['stars']
+      }).then((res) => {
+        if (!res['success']) {
+          window['$message'].error(`更新评分失败: ${res['msg']}`)
+        }
+      })
+    }
+  })
 }
 
 const handleUpdatePage = () => {
@@ -137,7 +185,7 @@ const eventsColumns = ref([
 const eventsLoading = ref(false)
 
 const fetchInfo = async () => {
-  const { msg, data, success } = await videoInfo()
+  const { msg, data, success } = await queryVideoInfo()
   if (!success) {
     console.error(msg)
     return
@@ -147,7 +195,7 @@ const fetchInfo = async () => {
 
 const fetchEvents = async () => {
   eventsLoading.value = true
-  const { msg, data, success } = await taskEvents()
+  const { msg, data, success } = await queryTaskEvents()
   eventsLoading.value = false
   if (!success) {
     console.error(msg)
@@ -157,7 +205,7 @@ const fetchEvents = async () => {
 }
 
 const handleTaskExec = async () => {
-  const { msg, success } = await taskExec()
+  const { msg, success } = await postTaskExec()
   if (!success) {
     console.error(msg)
   }
@@ -166,7 +214,7 @@ const handleTaskExec = async () => {
 }
 
 const handleTaskClean = async () => {
-  const { msg, success } = await taskClean()
+  const { msg, success } = await postTaskClean()
   if (!success) {
     console.error(msg)
   }
@@ -267,7 +315,7 @@ onMounted(() => {
           </div>
         </div>
       </n-spin>
-      <n-back-top :right="20" :bottom="20" />
+      <n-back-top :right="40" :bottom="20" />
     </n-scrollbar>
     <div flex-center h-80 min-h-80 max-h-80 px-20>
       <n-pagination

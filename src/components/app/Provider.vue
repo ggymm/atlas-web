@@ -1,6 +1,8 @@
 <template>
   <n-config-provider wh-full :locale="zhCN" :date-locale="dateZhCN" :theme="darkTheme" :theme-overrides="customTheme" inline-theme-disabled>
-    <slot />
+    <n-modal-provider>
+      <slot />
+    </n-modal-provider>
   </n-config-provider>
 </template>
 

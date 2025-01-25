@@ -2,14 +2,14 @@ import req from './req.js'
 
 const baseApiUrl = '/task/'
 
-export function taskExec(data) {
+export function postTaskExec(data) {
   return req.post(baseApiUrl + 'exec', data)
 }
 
-export function taskClean(data) {
+export function postTaskClean(data) {
   return req.post(baseApiUrl + 'clean', data)
 }
 
-export function taskEvents(data) {
+export function queryTaskEvents(data) {
   return req.post(baseApiUrl + 'events', data)
 }
