@@ -89,7 +89,6 @@ const handlePlayVideo = (v) => {
 }
 
 const handleLikeVideo = (v) => {
-  console.log(v)
   modal.create({
     title: '评分',
     preset: 'dialog',
@@ -106,7 +105,7 @@ const handleLikeVideo = (v) => {
         },
         [
           h(NRate, {
-            modelValue: v['stars'],
+            defaultValue: v['stars'],
             onUpdateValue: (val) => {
               update.value['stars'] = val
             }
@@ -258,7 +257,7 @@ onMounted(() => {
           <n-select v-model:value="query.path" :options="paths" placeholder="选择筛选目录" />
         </div>
         <div flex-1>
-          <n-input v-model:value="query.search" type="text" placeholder="请输入关键词或表达式" round>
+          <n-input v-model:value="query.search" @keyup.enter="handleSearch" type="text" placeholder="请输入关键词或表达式" round>
             <template #suffix>
               <n-popover trigger="hover">
                 <template #trigger>
