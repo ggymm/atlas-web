@@ -35,7 +35,9 @@ const paths = ref()
 const total = ref()
 const videos = ref()
 
+const scroll = ref()
 const loading = ref(false)
+
 const fetchPage = async () => {
   loading.value = true
   const { msg, data, success } = await queryVideoPage({
@@ -48,6 +50,12 @@ const fetchPage = async () => {
   }
   total.value = data['total']
   videos.value = data['records']
+
+  // 滚动回到顶部
+  scroll.value.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
 }
 
 const fetchPaths = async () => {
@@ -105,6 +113,7 @@ const handleLikeVideo = (v) => {
         },
         [
           h(NRate, {
+            clearable: true,
             defaultValue: v['stars'],
             onUpdateValue: (val) => {
               update.value['stars'] = val
@@ -283,7 +292,7 @@ onMounted(() => {
       </div>
       <div w-200></div>
     </div>
-    <n-scrollbar flex-1 px-20>
+    <n-scrollbar flex-1 px-20 ref="scroll">
       <n-spin :show="loading" min-h-200>
         <div grid gap-20 style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))">
           <div flex-col flex-center v-for="v in videos" :key="v['id']">
