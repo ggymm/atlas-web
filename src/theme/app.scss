@@ -15,12 +15,6 @@ body {
   overflow: hidden;
   box-sizing: border-box;
   line-height: 1;
-}
-
-#app {
-  width: 100%;
-  height: 100%;
-  background: #23292e;
 
   .n-input {
     --n-padding-left: 20px;
@@ -35,4 +29,20 @@ body {
       box-shadow: none;
     }
   }
+
+  .n-select {
+    .n-base-selection {
+      --n-font-size: 13px;
+    }
+  }
+
+  .n-base-select-menu {
+    --n-option-font-size: 13px;
+  }
+}
+
+#app {
+  width: 100%;
+  height: 100%;
+  background: #23292e;
 }

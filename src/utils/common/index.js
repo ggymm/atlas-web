@@ -33,16 +33,35 @@ export function debounce(func, wait, immediate) {
   }
 }
 
-/**
- *
- * @param {HTMLElement} el
- * @param {Function} cb
- * @return {ResizeObserver}
- */
-export function useResize(el, cb) {
-  const observer = new ResizeObserver((entries) => {
-    cb(entries[0].contentRect)
+export const convertPathsToTree = (paths) => {
+  const result = []
+  const level = { result }
+
+  paths.forEach((path) => {
+    path.split('/').reduce((r, name, i, a) => {
+      if (!r[name]) {
+        r[name] = { result: [] }
+        r.result.push({
+          label: name,
+          key: a.slice(0, i + 1).join('/'),
+          children: r[name].result
+        })
+      }
+      return r[name]
+    }, level)
   })
-  observer.observe(el)
-  return observer
+
+  // 清理空的 children 数组
+  const cleanEmptyChildren = (items) => {
+    items.forEach((item) => {
+      if (item.children.length === 0) {
+        delete item.children
+      } else {
+        cleanEmptyChildren(item.children)
+      }
+    })
+  }
+
+  cleanEmptyChildren(result)
+  return result
 }

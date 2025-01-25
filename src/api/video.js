@@ -11,6 +11,10 @@ export function videoPage(data) {
   return req.post(baseApiUrl + 'query/page', data)
 }
 
+export function videoPaths(data) {
+  return req.post(baseApiUrl + 'query/paths', data)
+}
+
 const { VITE_API_BASE_URL } = getEnv()
 
 export function videoCover(id) {

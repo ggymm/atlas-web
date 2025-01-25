@@ -1,6 +1,6 @@
 <script setup>
 import { taskExec, taskClean, taskEvents } from '@/api/task.js'
-import { videoCover, videoInfo, videoPage } from '@/api/video.js'
+import { videoCover, videoInfo, videoPage, videoPaths } from '@/api/video.js'
 
 import { useWindowResize } from '@/hooks/index.js'
 import { $ } from '@/utils/index.js'
@@ -21,10 +21,12 @@ const syntaxes = [
 const query = ref({
   page: 1,
   size: 60,
+  path: null,
   search: null
 })
 
 const total = ref()
+const paths = ref()
 const videos = ref()
 
 const loading = ref(false)
@@ -42,6 +44,22 @@ const fetchPage = async () => {
   videos.value = data['records']
 }
 
+const fetchPaths = async () => {
+  const { msg, data, success } = await videoPaths()
+  if (!success) {
+    console.error(msg)
+    return
+  }
+  const options = []
+  data.forEach((item) => {
+    options.push({
+      label: item,
+      value: item
+    })
+  })
+  paths.value = options
+}
+
 const handleSearch = () => {
   fetchPage()
 }
@@ -56,6 +74,16 @@ const handleConfig = () => {
   nextTick(() => {
     resetTableHeight()
   })
+}
+
+const handlePlayVideo = (v) => {
+  if (window['playVideo']) {
+    window['playVideo'](v['path'])
+  }
+}
+
+const handleLikeVideo = (v) => {
+  console.log(v)
 }
 
 const handleUpdatePage = () => {
@@ -150,13 +178,6 @@ const handleTabChange = (tab) => {
   active.value = tab
 }
 
-// ==================== 系统函数 ====================
-const handlePlayVideo = (path) => {
-  if (window['playVideo']) {
-    window['playVideo'](path)
-  }
-}
-
 const height = ref(200)
 const resetTableHeight = () => {
   const container = $('.n-drawer .n-scrollbar')
@@ -170,8 +191,14 @@ const resetTableHeight = () => {
 useWindowResize(resetTableHeight, 0)
 
 onMounted(() => {
+  // 获取视频列表
   fetchPage()
+  // 获取视频路径列表
+  fetchPaths()
+
+  // 获取视频信息
   fetchInfo()
+  // 获取事件列表
   fetchEvents()
 })
 </script>
@@ -181,26 +208,33 @@ onMounted(() => {
     <div flex flex-center gap-20 h-80 min-h-80 max-h-80>
       <div w-200></div>
       <div flex gap-20 flex-1>
-        <n-input v-model:value="query.search" type="text" round>
-          <template #suffix>
-            <n-popover trigger="hover">
-              <template #trigger>
-                <svg-icon icon="info" w-20 h-20 cursor-pointer />
-              </template>
-              <div flex-col class="syntax-help">
-                <div v-for="(item, index) in syntaxes" :key="index" class="syntax-item">
-                  {{ item }}
+        <div w-200>
+          <n-select v-model:value="query.path" :options="paths" placeholder="选择筛选目录" />
+        </div>
+        <div flex-1>
+          <n-input v-model:value="query.search" type="text" placeholder="请输入关键词或表达式" round>
+            <template #suffix>
+              <n-popover trigger="hover">
+                <template #trigger>
+                  <svg-icon icon="info" w-20 h-20 cursor-pointer />
+                </template>
+                <div flex-col class="syntax-help">
+                  <div v-for="(item, index) in syntaxes" :key="index" class="syntax-item">
+                    {{ item }}
+                  </div>
                 </div>
-              </div>
-            </n-popover>
-          </template>
-        </n-input>
-        <n-button type="primary" round @click="handleSearch">
-          <span>搜索影片</span>
-        </n-button>
-        <n-button type="primary" round @click="handleConfig">
-          <span>应用设置</span>
-        </n-button>
+              </n-popover>
+            </template>
+          </n-input>
+        </div>
+        <div flex-row gap-20>
+          <n-button type="primary" round @click="handleSearch">
+            <span>搜索影片</span>
+          </n-button>
+          <n-button type="primary" round @click="handleConfig">
+            <span>应用设置</span>
+          </n-button>
+        </div>
       </div>
       <div w-200></div>
     </div>
@@ -211,8 +245,11 @@ onMounted(() => {
             <div relative w-320 h-180 class="cover">
               <div class="mask">
                 <div class="mask-bg"></div>
-                <div class="mask-play" @click="handlePlayVideo(v['path'])">
+                <div class="mask-play" @click="handlePlayVideo(v)">
                   <svg-icon icon="play" w-48 h-48 />
+                </div>
+                <div class="mask-like" @click="handleLikeVideo(v)">
+                  <svg-icon icon="like" w-48 h-48 />
                 </div>
               </div>
               <img wh-full :src="videoCover(v['id'])" :alt="v['id']" loading="lazy" />
@@ -221,7 +258,7 @@ onMounted(() => {
               <n-ellipsis>
                 <span font-size-13>{{ v['title'] }}</span>
                 <template #tooltip>
-                  <div max-w-320>
+                  <div max-w-320 line-height-normal>
                     {{ v['title'] }}
                   </div>
                 </template>
@@ -230,6 +267,7 @@ onMounted(() => {
           </div>
         </div>
       </n-spin>
+      <n-back-top :right="20" :bottom="20" />
     </n-scrollbar>
     <div flex-center h-80 min-h-80 max-h-80 px-20>
       <n-pagination
@@ -296,7 +334,6 @@ onMounted(() => {
         </div>
       </n-drawer-content>
     </n-drawer>
-    <n-back-top :right="100" />
   </div>
 </template>
 
@@ -344,7 +381,20 @@ onMounted(() => {
       position: absolute;
       cursor: pointer;
       top: 50%;
-      left: 50%;
+      left: 25%;
+      transform: translate(-50%, -50%);
+      transition: all 0.3s;
+
+      &:hover {
+        transform: translate(-50%, -50%) scale(1.2);
+      }
+    }
+
+    .mask-like {
+      position: absolute;
+      cursor: pointer;
+      top: 50%;
+      left: 75%;
       transform: translate(-50%, -50%);
       transition: all 0.3s;
 

@@ -1,4 +1,4 @@
-const baseTitle = '管理平台'
+const baseTitle = ''
 
 export function setupRouterGuard(router) {
   createPageTitleGuard(router)
