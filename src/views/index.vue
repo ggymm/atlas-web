@@ -75,6 +75,10 @@ const fetchPaths = async () => {
 }
 
 const handleSearch = () => {
+  if (!query.value['search']) {
+    window['$message'].error('请输入关键词或表达式')
+    return
+  }
   fetchPage()
 }
 
