@@ -19,6 +19,10 @@ export function updateVideoStars(data) {
   return req.post(baseApiUrl + 'update/stars', data)
 }
 
+export function videoPlay(id) {
+  return req.post(baseApiUrl + `play/${id}`)
+}
+
 const { VITE_API_BASE_URL } = getEnv()
 
 export function videoCover(id) {
