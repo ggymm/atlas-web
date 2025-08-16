@@ -79,6 +79,7 @@ const handleSearch = () => {
     window['$message'].error('请输入关键词或表达式')
     return
   }
+  query.value['page'] = 1
   fetchPage()
 }
 
@@ -92,6 +93,11 @@ const handleConfig = () => {
   nextTick(() => {
     resetTableHeight()
   })
+}
+
+const handleCopyPath = (v) => {
+  navigator.clipboard.writeText(v['path'])
+  window['$message'].success('复制成功')
 }
 
 const handlePlayVideo = async (v) => {
@@ -315,7 +321,7 @@ onMounted(() => {
             </div>
             <div flex-center w-320 h-60 class="title">
               <n-ellipsis>
-                <span font-size-13>{{ v['title'] }}</span>
+                <span font-size-13 cursor-pointer @dblclick="handleCopyPath(v)">{{ v['title'] }}</span>
                 <template #tooltip>
                   <div max-w-320 line-height-normal>
                     {{ v['title'] }}
